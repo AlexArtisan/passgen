@@ -4,7 +4,9 @@
 #include <string.h>
 #include <openssl/sha.h>
 
-char symbols[42] = {
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+
+char symbols[] = {
 	'(', 'E', 'H', '7', '4', 'A', 'l',
 	'F', '0', 's', '3', 'k', '1', '#',
 	'+', 't', 'x', '-', 'm', '8', '?',
@@ -13,42 +15,54 @@ char symbols[42] = {
 	'6', '*', 'B', '2', ')', 'G', '9'
 };
 
-void hash(unsigned char *p, unsigned char *buffer) {
-	SHA256(p, strlen((char *) p), buffer);
+int parser(char *arg) {
+	return abs(atoi(arg));
 }
 
-void transform(unsigned char *buffer) {
+void worker(int line, unsigned char *string, unsigned char buffers[2][33], int width, int salt) {
+
+	SHA256(string, strlen((char *) string), buffers[1]);
+
+	strcpy((char *) buffers[0], (const char *) buffers[1]);
+
 	for (int i = 0; i < 32; i++) {
-		buffer[i] = symbols[buffer[i] % 42];
+	  buffers[1][i] = symbols[(buffers[1][i] + salt) % 42];
 	}
+
+	buffers[1][width] = '\0';
+
+	printf("#%d %s\n", line, buffers[1]);
+
 }
 
 int main(int argc, char **argv) {
 
-	int lines = argc > 1 ? atoi(argv[1]) : 10;
+	int lines = 10, width = 16, salt = 0;
 
-	if (lines < 1) lines = 10;
+	if (argc > 1) {
+		lines = MAX(parser(argv[1]), 1);
+	}
 
-	unsigned char out[lines][33];
+	if (argc > 2) {
+		width = parser(argv[2]) % 33;
+	}
+
+	unsigned char out[2][33];
 
 	memset(out, 0, sizeof out);
 
-	int line_len = argc > 2 ? atoi(argv[2]) : 16;
+	char *prompt = getpass("password: ");
 
-	if (line_len < 1 || line_len > 32) line_len = 16;
+	unsigned char password[strlen(prompt)];
 
-	char *pass = getpass("password: ");
+	strcpy((char *) password, prompt);
 
-	hash((unsigned char *) pass, out[0]);
+	salt = parser(getpass("salt: ")) % 42;
 
-	for (int i = 1; i < lines; i++) {
-		hash(out[i - 1], out[i]);
-	}
+	worker(1, password, out, width, salt);
 
-	for (int i = 0; i < lines; i++) {
-		transform(out[i]);
-		out[i][line_len] = '\0';
-		printf("#%d %s\n", i + 1, out[i]);
+	for (int i = 2; i <= lines; i++) {
+		worker(i, out[0], out, width, salt);
 	}
 
 	return 0;
