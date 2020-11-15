@@ -19,9 +19,16 @@ int parser(char *arg) {
 	return abs(atoi(arg));
 }
 
-void worker(int line, unsigned char *string, unsigned char buffers[2][33], int width, int salt) {
+void worker(int line, unsigned char *password, unsigned char *string, unsigned char buffers[2][33], int width, int salt) {
 
-	SHA256(string, strlen((char *) string), buffers[1]);
+	unsigned char *combined = malloc(strlen((char *) password) + strlen((char *) string) + 1);
+
+	strcpy((char *) combined, (const char *) password);
+	strcat((char *) combined, (const char *) string);
+
+	SHA256(combined, strlen((char *) combined), buffers[1]);
+
+	free(combined);
 
 	strcpy((char *) buffers[0], (const char *) buffers[1]);
 
@@ -59,10 +66,10 @@ int main(int argc, char **argv) {
 
 	salt = parser(getpass("salt: ")) % 42;
 
-	worker(1, password, out, width, salt);
+	worker(1, password, password, out, width, salt);
 
 	for (int i = 2; i <= lines; i++) {
-		worker(i, out[0], out, width, salt);
+		worker(i, password, out[0], out, width, salt);
 	}
 
 	return 0;
