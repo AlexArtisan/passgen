@@ -2,7 +2,11 @@
 
 Generating a password list based on the one password:
 
-![alt text](assets/passgen.png "passgen")
+![alt text](assets/example.png "example")
+
+Example of passwords collisions:
+
+![alt text](assets/collisions.png "collisions")
 
 ## Build
 

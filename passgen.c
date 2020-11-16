@@ -30,11 +30,11 @@ void worker(int line, unsigned char *password, unsigned char *string, unsigned c
 
 	free(combined);
 
-	strcpy((char *) buffers[0], (const char *) buffers[1]);
-
 	for (int i = 0; i < 32; i++) {
 	  buffers[1][i] = symbols[(buffers[1][i] + salt) % 42];
 	}
+
+	strcpy((char *) buffers[0], (const char *) buffers[1]);
 
 	buffers[1][width] = '\0';
 
@@ -54,9 +54,7 @@ int main(int argc, char **argv) {
 		width = parser(argv[2]) % 33;
 	}
 
-	unsigned char out[2][33];
-
-	memset(out, 0, sizeof out);
+	unsigned char out[2][33] = {};
 
 	char *prompt = getpass("password: ");
 
