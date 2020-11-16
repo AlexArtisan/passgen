@@ -19,7 +19,7 @@ int parser(char *arg) {
 	return abs(atoi(arg));
 }
 
-void worker(int line, unsigned char *password, unsigned char *string, unsigned char buffers[2][33], int width, int salt) {
+void worker(int line, unsigned char *password, unsigned char *string, unsigned char buffers[2][33], int width, int salt, int last) {
 
 	unsigned char *combined = malloc(strlen((char *) password) + strlen((char *) string) + 1);
 
@@ -38,13 +38,15 @@ void worker(int line, unsigned char *password, unsigned char *string, unsigned c
 
 	buffers[1][width] = '\0';
 
-	printf("#%d %s\n", line, buffers[1]);
+	if (last == 0 || last == line) {
+		printf("#%d %s\n", line, buffers[1]);
+	}
 
 }
 
 int main(int argc, char **argv) {
 
-	int lines = 10, width = 16, salt = 0;
+	int lines = 10, width = 16, salt = 0, last = 0;
 
 	if (argc > 1) {
 		lines = MAX(parser(argv[1]), 1);
@@ -52,6 +54,10 @@ int main(int argc, char **argv) {
 
 	if (argc > 2) {
 		width = parser(argv[2]) % 33;
+	}
+
+	if (argc > 3 && strcmp(argv[3], "-l") == 0) {
+		last = lines;
 	}
 
 	unsigned char out[2][33] = {};
@@ -64,10 +70,10 @@ int main(int argc, char **argv) {
 
 	salt = parser(getpass("salt: ")) % 42;
 
-	worker(1, password, password, out, width, salt);
+	worker(1, password, password, out, width, salt, last);
 
 	for (int i = 2; i <= lines; i++) {
-		worker(i, password, out[0], out, width, salt);
+		worker(i, password, out[0], out, width, salt, last);
 	}
 
 	return 0;
