@@ -46,7 +46,7 @@ void worker(int line, unsigned char *password, unsigned char *string, unsigned c
 
 int main(int argc, char **argv) {
 
-	int lines = 10, width = 16, salt = 0, last = 0;
+	int lines = 10, width = 32, salt = 0, last = 0;
 
 	if (argc > 1) {
 		lines = MAX(parser(argv[1]), 1);
