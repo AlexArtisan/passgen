@@ -1,4 +1,6 @@
-all:
-	gcc passgen.c -lssl -lcrypto -o passgen
+build:
+	go build -o passgen .
+run:
+	go run .
 clean:
 	rm passgen
