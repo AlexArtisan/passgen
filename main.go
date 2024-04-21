@@ -20,16 +20,27 @@ var symbols = [42]byte{
 	'6', '*', 'B', '2', ')', 'G', '9',
 }
 
+func hash(seed, mutable []byte) []byte {
+	sum := sha256.Sum256(append(seed, mutable...))
+	return sum[:]
+}
+
+func bound(value, min, max int) int {
+	return int(math.Min(math.Max(float64(value), float64(min)), float64(max)))
+}
+
 func main() {
 
-	var num = flag.Int("n", 10, "number of passwords ≥ 1")
-	var width = flag.Int("l", 32, "length of password, 8 ≤ length ≤ 32")
-	var last = flag.Bool("o", false, "print only one last password")
+	var f_n = flag.Int("n", 10, "number of passwords ≥ 1")
+	var f_l = flag.Int("l", 32, "length of password, 8 ≤ length ≤ 32")
+	var f_o = flag.Bool("o", false, "print only one last password")
 
 	flag.Parse()
 
-	*num = int(math.Max(float64(*num), 1))
-	*width = int(math.Min(math.Max(float64(*width), 8), 32))
+	number, length, one := *f_n, *f_l, *f_o
+
+	number = bound(number, 1, math.MaxInt)
+	length = bound(length, 8, 32)
 
 	fmt.Fprint(os.Stderr, "Master Password: ")
 
@@ -39,22 +50,20 @@ func main() {
 		panic(err)
 	}
 
-	var mutable = append([]byte{}, seed...)
+	var mutable = seed
 
 	fmt.Println()
 
-	for line := range *num {
+	for line := range number {
 
-		sum := sha256.Sum256(append(seed, mutable...))
+		mutable = hash(seed, mutable)
 
-		for i, code := range sum {
-			sum[i] = symbols[code%42]
+		for i, symbol := range mutable {
+			mutable[i] = symbols[symbol%42]
 		}
 
-		mutable = append([]byte{}, sum[:]...)
-
-		if !*last || *num == line+1 {
-			fmt.Printf("#%d %s\n", line+1, sum[:*width])
+		if !one || number == line+1 {
+			fmt.Printf("#%d %s\n", line+1, mutable[:length])
 		}
 
 	}
