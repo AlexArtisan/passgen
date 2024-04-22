@@ -58,7 +58,11 @@ func main() {
 	} else {
 
 		seed = make([]byte, 32)
-		rand.Read(seed)
+		_, err = rand.Read(seed)
+
+		if err != nil {
+			panic(err)
+		}
 
 	}
 
