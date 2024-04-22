@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/sha256"
+	"io"
 	"math"
 	"os/exec"
 )
@@ -18,21 +19,22 @@ func Bound(value, min, max int) int {
 func Pbcopy(text string) error {
 	cmd := exec.Command("pbcopy")
 
-	in, err := cmd.StdinPipe()
+	var pipe io.WriteCloser
+	var err error
 
-	if err != nil {
+	if pipe, err = cmd.StdinPipe(); err != nil {
 		return err
 	}
 
-	if err := cmd.Start(); err != nil {
+	if err = cmd.Start(); err != nil {
 		return err
 	}
 
-	if _, err := in.Write([]byte(text)); err != nil {
+	if _, err = pipe.Write([]byte(text)); err != nil {
 		return err
 	}
 
-	if err := in.Close(); err != nil {
+	if err = pipe.Close(); err != nil {
 		return err
 	}
 

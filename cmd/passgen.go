@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"flag"
 	"fmt"
 	"math"
@@ -26,10 +27,11 @@ func main() {
 	var f_l = flag.Int("l", 32, "length of password, 8 ≤ length ≤ 32")
 	var f_o = flag.Bool("o", false, "print only one last password")
 	var f_c = flag.Bool("c", false, "copy to clipboard")
+	var f_r = flag.Bool("r", false, "random master password")
 
 	flag.Parse()
 
-	number, length, one, clipboard := *f_n, *f_l, *f_o, *f_c
+	number, length, one, clipboard, random := *f_n, *f_l, *f_o, *f_c, *f_r
 
 	number = utils.Bound(number, 1, math.MaxInt)
 	length = utils.Bound(length, 8, 32)
@@ -38,17 +40,29 @@ func main() {
 		number = 1
 	}
 
-	fmt.Fprint(os.Stderr, "Master Password: ")
+	var seed []byte
+	var err error
 
-	seed, err := term.ReadPassword(int(syscall.Stdin))
+	if !random {
 
-	if err != nil {
-		panic(err)
+		fmt.Fprint(os.Stderr, "Master Password: ")
+
+		seed, err = term.ReadPassword(int(syscall.Stdin))
+
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println()
+
+	} else {
+
+		seed = make([]byte, 32)
+		rand.Read(seed)
+
 	}
 
 	var mutable = seed
-
-	fmt.Println()
 
 	for line := range number {
 
